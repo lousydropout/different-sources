@@ -1,0 +1,87 @@
+image: node:latest
+
+stages:
+  - test
+  - deploy
+
+cache:
+  paths:
+    - .venv
+    - node_modules
+  policy: pull
+
+
+perform unit tests:
+  stage: test
+  image: alpine
+  only:
+    - merge_requests
+  script:
+    - echo "TODO - add unit tests"
+
+
+.deploy: &deploy
+  script:
+    # Install python3-venv
+    - python3 --version
+    - apt update && apt upgrade -y
+    - apt install -y python3-venv
+    # Set up virtual environment
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - pip install -r requirements.txt
+    # Install CDK
+    - npm init -y
+    - npm install aws-cdk@1.121.0
+    - npx --version
+    # Deploy app
+    - npx cdk bootstrap
+    - export IS_REVIEW=$IS_REVIEW
+    - npx cdk deploy --require-approval never
+
+deploy review:
+  stage: deploy
+  environment:
+    name: review
+  variables:
+    IS_REVIEW: "true"
+  only:
+    - merge_requests
+  <<: *deploy
+
+stop review:
+  stage: deploy
+  environment:
+    name: review
+    action: stop
+  variables:
+    IS_REVIEW: "true"
+  only:
+    - merge_requests
+  when: manual
+  script:
+    # Install python3-venv
+    - python3 --version
+    - apt update && apt upgrade -y
+    - apt install -y python3-venv
+    # Set up virtual environment
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - pip install -r requirements.txt
+    # Install CDK
+    - npm init -y
+    - npm install aws-cdk@1.121.0
+    - npx --version
+    # destroy stack
+    - export IS_REVIEW=$IS_REVIEW
+    - npx cdk destroy -f
+
+deploy IaC:
+  stage: deploy
+  environment:
+    name: production
+  variables:
+    IS_REVIEW: "false"
+  only:
+    - main
+  <<: *deploy
