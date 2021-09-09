@@ -40,16 +40,16 @@ class DifferentSources(cdk.Stack):
         # SQS Queues
         dlq = sqs.Queue(
             self,
-            "datadlq",
-            queue_name=f"{prefix}-dlq",
+            "sqsdlq",
+            queue_name=f"{prefix}-sqs-dlq",
             retention_period=cdk.Duration.days(14),
             visibility_timeout=cdk.Duration.minutes(15),
         )
 
         queue = sqs.Queue(
             self,
-            "dataqueue",
-            queue_name=f"{prefix}-queue",
+            "sqsqueue",
+            queue_name=f"{prefix}-sqs-queue",
             retention_period=cdk.Duration.days(14),
             visibility_timeout=cdk.Duration.minutes(15),
             dead_letter_queue=sqs.DeadLetterQueue(

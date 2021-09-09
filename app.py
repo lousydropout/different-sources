@@ -12,7 +12,7 @@ app = cdk.App()
 DifferentSources(
     app,
     "different-sources-review" if is_review else "different-sources",
-    prefix="ds-review" if is_review else "ds",
+    prefix="different-sources-review" if is_review else "different-sources",
 )
 
 app.synth()
