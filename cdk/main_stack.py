@@ -4,6 +4,7 @@ from aws_cdk import (
     aws_sqs as sqs,
     aws_lambda as lambda_,
     aws_lambda_event_sources as eventsources,
+    aws_apigateway as apigw,
     core as cdk,
 )
 
@@ -57,14 +58,31 @@ class DifferentSources(cdk.Stack):
             ),
         )
 
-        # Lambda
-        lambda_function = lambda_.Function(
+        # Lambda - API
+        api_handler = lambda_.Function(
             self,
             "apilambda",
             function_name=f"{prefix}-api-handler",
             runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset("src"),
             handler="handler.handler",
+            environment={
+                "metadata_table": metadata_table.table_name,
+                "storage": storage.bucket_name,
+            },
+        )
+        queue.grant_send_messages(api_handler)
+        metadata_table.grant_full_access(api_handler)
+        storage.grant_read_write(api_handler)
+
+        # Lambda - Security
+        security_handler = lambda_.Function(
+            self,
+            "securitylambda",
+            function_name=f"{prefix}-security-handler",
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            code=lambda_.Code.from_asset("src"),
+            handler="security.handler",
             events=[eventsources.SqsEventSource(queue)],
             environment={
                 "metadata_table": metadata_table.table_name,
@@ -72,7 +90,18 @@ class DifferentSources(cdk.Stack):
                 "dlq": dlq.queue_url,
             },
         )
-        queue.grant_send_messages(lambda_function)
-        dlq.grant_send_messages(lambda_function)
-        metadata_table.grant_full_access(lambda_function)
-        storage.grant_read_write(lambda_function)
+        dlq.grant_send_messages(security_handler)
+        metadata_table.grant_full_access(security_handler)
+        storage.grant_read_write(security_handler)
+
+        # API Gateway
+        api_gateway = apigw.LambdaRestApi(
+            self,
+            "apigateway",
+            handler=api_handler,
+            rest_api_name=f"{prefix}-parser-api",
+            default_cors_preflight_options=apigw.CorsOptions(
+                allow_origins=apigw.Cors.ALL_ORIGINS
+            ),
+            endpoint_types=[apigw.EndpointType("REGIONAL")],
+        )
