@@ -1,6 +1,11 @@
+from helper import logger_setup
+from helper.fastapi_setup import HTTPException
+
+from botocore.exceptions import ClientError
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
 
+logger = logger_setup.logger
 dynamodb = boto3.client("dynamodb")
 deserializer = TypeDeserializer()
 
@@ -19,3 +24,17 @@ def format_response(response: dict) -> dict:
             for x in response["Items"]
         ]
     }
+
+
+def execute_statement(statement: str) -> dict:
+    try:
+        response = dynamodb.execute_statement(Statement=statement)
+    except dynamodb.exceptions.DuplicateItemException as err:
+        logger.exception(err)
+        detail = "DuplicateItemError: {name} already exists."
+        raise HTTPException(status_code=400, detail=detail)
+    except ClientError as err:
+        logger.exception(err)
+        raise HTTPException(status_code=400, detail="Something went wrong.")
+
+    return response
