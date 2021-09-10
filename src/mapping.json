@@ -1,0 +1,26 @@
+{
+  "basic_loan": {
+    "parser_basic.py": {
+      "first_name": "_get_borrower_first_name",
+      "last_name": "_get_borrower_last_name",
+      "age": "_get_borrower_age",
+      "loan_amount": "_get_loan_amount"
+    }
+  },
+  "extended_loan": {
+    "parser_extend.py": {
+      "first_name": "_get_borrower_first_name",
+      "last_name": "_get_borrower_last_name",
+      "age": "_get_borrower_age",
+      "loan_amount": "_get_loan_amount"
+    }
+  },
+  "augmented_loan": {
+    "parser_augmented.py": {
+      "first_name": "_get_borrower_first_name",
+      "last_name": "_get_borrower_last_name",
+      "age": "_get_borrower_age",
+      "loan_amount": "_get_loan_amount"
+    }
+  }
+}

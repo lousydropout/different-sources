@@ -1,0 +1,10 @@
+{
+  "type": "extended_loan",
+  "borrower_1_first_name": "John",
+  "borrower_1_last_name": "Doe",
+  "borrower_1_age": 54,
+  "borrower_2_first_name": "Jane",
+  "borrower_2_last_name": "Doe",
+  "borrower_2_age": 57,
+  "loan_amount": 100000.0
+}

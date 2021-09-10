@@ -36,22 +36,18 @@ def upload_type(category: str, object):
 
 
 def print_error_message():
-    print("\nUsage: python upload.py <category> <file>")
-    print("  <category> = parsers | schemas | mappings")
-    print("Example: python upload.py parsers ../examples/parser_1.py")
+    print("\nUsage: python upload.py <file>")
+    print("Example: python upload.py ../examples/parser_1.py")
     print("")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+
+    # confirm that there are 1 input beyond the python file
+    if len(sys.argv) != 2:
         print_error_message()
         exit(1)
 
-    category = sys.argv[1]
-    if category not in {"parsers", "schemas", "mappings"}:
-        print_error_message()
-        exit(1)
+    object = sys.argv[1]
 
-    object = sys.argv[2]
-
-    upload_type(category, object)
+    upload_type("parsers", object)

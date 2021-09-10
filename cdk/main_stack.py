@@ -45,6 +45,7 @@ class DifferentSources(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        # Lambda layer - FastAPI + Mangum
         fastapi_mod = lambda_.LayerVersion(
             self,
             "fastapi",
@@ -65,6 +66,7 @@ class DifferentSources(cdk.Stack):
                 "metadata_table": metadata_table.table_name,
                 "storage": storage.bucket_name,
             },
+            timeout=cdk.Duration.seconds(30),
         )
         # queue.grant_send_messages(api_handler)
         metadata_table.grant_full_access(api_handler)
@@ -81,3 +83,31 @@ class DifferentSources(cdk.Stack):
             ),
             endpoint_types=[apigw.EndpointType("REGIONAL")],
         )
+
+        # Lambda layer - requests
+        requests_mod = lambda_.LayerVersion(
+            self,
+            "requests",
+            code=lambda_.Code.from_asset("lib/requests/modules"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
+        )
+
+        # Lambda - Example
+        api_handler = lambda_.Function(
+            self,
+            "example",
+            function_name=f"{prefix}-example-handler",
+            runtime=lambda_.Runtime.PYTHON_3_8,
+            code=lambda_.Code.from_asset("src"),
+            handler="example.handler",
+            layers=[requests_mod],
+            environment={
+                "metadata_table": metadata_table.table_name,
+                "storage": storage.bucket_name,
+                "apigw": api_gateway.url,
+            },
+            timeout=cdk.Duration.minutes(15),
+        )
+        # queue.grant_send_messages(api_handler)
+        metadata_table.grant_full_access(api_handler)
+        storage.grant_read_write(api_handler)

@@ -1,0 +1,19 @@
+{
+  "type": "augmented_loan",
+  "borrowers": [
+    {
+      "name": { "first": "John", "last": "Doe" },
+      "age": 54
+    },
+    {
+      "name": { "first": "Jane", "last": "Doe" },
+      "age": 57
+    }
+  ],
+  "loan": {
+    "amount": 100000.0
+  },
+  "metadata": {
+    "number_of_outstanding_loans": 6
+  }
+}

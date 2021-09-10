@@ -1,0 +1,7 @@
+{
+  "type": "basic_loan",
+  "borrower_first_name": "John",
+  "borrower_last_name": "Doe",
+  "borrower_age": 54,
+  "loan_amount": 100000.0
+}
