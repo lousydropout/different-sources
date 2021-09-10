@@ -4,5 +4,5 @@ if [[ $# != 1 ]]; then
     exit 1;
 fi
 
-export IS_REVIEW=true
-npx cdk $1 --profile cloud
+export IS_REVIEW=false
+npx cdk $1

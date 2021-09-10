@@ -4,7 +4,6 @@ from helper.fastapi_setup import app
 
 # import routes
 from routes import parser_routes
-from routes import schema_routes
 
 from mangum import Mangum
 
