@@ -19,7 +19,6 @@ setuptools.setup(
         "aws-cdk.aws-dynamodb==1.121.0",
         "aws-cdk.aws-lambda==1.121.0",
         "aws-cdk.aws-apigateway==1.121.0",
-        "aws-cdk.aws-lambda-event-sources==1.121.0",
     ],
     python_requires=">=3.7",
     classifiers=[

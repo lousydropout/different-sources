@@ -1,9 +1,7 @@
 from aws_cdk import (
     aws_dynamodb as dynamodb,
     aws_s3 as s3,
-    aws_sqs as sqs,
     aws_lambda as lambda_,
-    aws_lambda_event_sources as eventsources,
     aws_apigateway as apigw,
     core as cdk,
 )
@@ -29,6 +27,15 @@ class DifferentSources(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
         )
+        metadata_table.add_global_secondary_index(
+            index_name="gsi-index",
+            partition_key=dynamodb.Attribute(
+                name="pk_gsi", type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name="sk_gsi", type=dynamodb.AttributeType.STRING
+            ),
+        )
 
         # S3 Buckets
         storage = s3.Bucket(
@@ -38,26 +45,6 @@ class DifferentSources(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
-        # SQS Queues
-        dlq = sqs.Queue(
-            self,
-            "sqsdlq",
-            queue_name=f"{prefix}-sqs-dlq",
-            retention_period=cdk.Duration.days(14),
-            visibility_timeout=cdk.Duration.minutes(15),
-        )
-
-        queue = sqs.Queue(
-            self,
-            "sqsqueue",
-            queue_name=f"{prefix}-sqs-queue",
-            retention_period=cdk.Duration.days(14),
-            visibility_timeout=cdk.Duration.minutes(15),
-            dead_letter_queue=sqs.DeadLetterQueue(
-                queue=dlq, max_receive_count=5
-            ),
-        )
-
         # Lambda - API
         api_handler = lambda_.Function(
             self,
@@ -65,34 +52,15 @@ class DifferentSources(cdk.Stack):
             function_name=f"{prefix}-api-handler",
             runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset("src"),
-            handler="handler.handler",
+            handler="api.handler",
             environment={
                 "metadata_table": metadata_table.table_name,
                 "storage": storage.bucket_name,
             },
         )
-        queue.grant_send_messages(api_handler)
+        # queue.grant_send_messages(api_handler)
         metadata_table.grant_full_access(api_handler)
         storage.grant_read_write(api_handler)
-
-        # Lambda - Security
-        security_handler = lambda_.Function(
-            self,
-            "securitylambda",
-            function_name=f"{prefix}-security-handler",
-            runtime=lambda_.Runtime.PYTHON_3_8,
-            code=lambda_.Code.from_asset("src"),
-            handler="security.handler",
-            events=[eventsources.SqsEventSource(queue)],
-            environment={
-                "metadata_table": metadata_table.table_name,
-                "storage": storage.bucket_name,
-                "dlq": dlq.queue_url,
-            },
-        )
-        dlq.grant_send_messages(security_handler)
-        metadata_table.grant_full_access(security_handler)
-        storage.grant_read_write(security_handler)
 
         # API Gateway
         api_gateway = apigw.LambdaRestApi(
