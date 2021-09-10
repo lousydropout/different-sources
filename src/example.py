@@ -55,6 +55,10 @@ def get_mapping(data: dict) -> Tuple[str, dict]:
 def handler(data: dict, context):
     logger.info("Event: %s", json.dumps(data, default=str))
 
+    # remove parser if previously imported
+    if "parser" in sys.modules:
+        del sys.modules["parser"]
+
     # Parse out the appropriate information
     parser_name, mapping = get_mapping(data)
 
