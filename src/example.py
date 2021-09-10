@@ -4,6 +4,7 @@ import json
 from typing import Tuple
 from helper import logger_setup
 
+import requests
 import boto3
 
 logger = logger_setup.logger
@@ -20,8 +21,19 @@ class Env:
 
 def download_parser(file: str) -> bool:
     """Download the parser python file from S3 into /tmp."""
+    url = f"{Env.apigw}/parsers/{file}"
+    response = requests.get(url).json()
+    logger.info("response: %s", json.dumps(response, default=str))
+    result = response["Items"][0]
+
+    bucket_name = result["bucket"]
+    key = result["key"]
+
+    if os.path.exists("/tmp/parser.py"):
+        os.remove("/tmp/parser.py")
+
     try:
-        s3.download_file(Env.storage, f"parsers/{file}", "/tmp/parser.py")
+        s3.download_file(bucket_name, key, "/tmp/parser.py")
     except:
         return False
     return True
