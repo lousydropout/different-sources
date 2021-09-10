@@ -30,9 +30,9 @@ def execute_statement(statement: str) -> dict:
     try:
         response = dynamodb.execute_statement(Statement=statement)
     except dynamodb.exceptions.DuplicateItemException as err:
-        logger.exception(err)
-        detail = "DuplicateItemError: {name} already exists."
-        raise HTTPException(status_code=400, detail=detail)
+        # since the record already exists, there's no problem
+        logger.warning(err)
+        response = {"warning": "duplicate item"}
     except ClientError as err:
         logger.exception(err)
         raise HTTPException(status_code=400, detail="Something went wrong.")

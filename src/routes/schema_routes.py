@@ -26,11 +26,7 @@ def list_schemas() -> dict:
     )
     logger.info("Statement: %s", statement)
 
-    try:
-        response = dynamodb.execute_statement(Statement=statement)
-    except ClientError as err:
-        logger.exception(err)
-        raise HTTPException(status_code=400, detail="Something went wrong.")
+    response = execute_statement(statement)
 
     logger.info(
         "GET /schemas response: %s",
@@ -49,11 +45,7 @@ def get_schema(name: str) -> dict:
     statement = f"""SELECT * FROM "{Env.table}" WHERE "pk"='{value}' AND "sk"='{value}';"""
     logger.info("Statement: %s", statement)
 
-    try:
-        response = dynamodb.execute_statement(Statement=statement)
-    except ClientError as err:
-        logger.exception(err)
-        raise HTTPException(status_code=400, detail="Something went wrong.")
+    response = execute_statement(statement)
 
     logger.info(
         "GET /schemas/{name} response: %s",
@@ -88,23 +80,24 @@ def create_schema(name: str = str(uuid()), uploaded: bool = False) -> dict:
 
         return s3.create_presigned_post(Env.storage, "schemas", name)
 
-    # Else, update record to show that it has been uploaded
+    else:
+        # Else, update record to show that it has been uploaded
 
-    # TODO: Add check that a file was actually uploaded
+        # TODO: Add check that a file was actually uploaded
 
-    statement = " ".join(
-        [
-            f'UPDATE "{Env.table}"',
-            f'SET "uploaded"={True}',
-            f"""WHERE "pk"='schemas#{name}' AND "sk"='schemas#{name}';""",
-        ]
-    )
-    logger.info("Statement: %s", statement)
-    response = execute_statement(statement)
-    logger.info(
-        "POST /schemas?name={name}?uploaded=True response: %s",
-        json.dumps(response, default=str),
-    )
-    logger.info("Successful: %s", is_execute_statement_successful(response))
+        statement = " ".join(
+            [
+                f'UPDATE "{Env.table}"',
+                f'SET "uploaded"={True}',
+                f"""WHERE "pk"='schemas#{name}' AND "sk"='schemas#{name}';""",
+            ]
+        )
+        logger.info("Statement: %s", statement)
+        response = execute_statement(statement)
+        logger.info(
+            "POST /schemas?name={name}?uploaded=True response: %s",
+            json.dumps(response, default=str),
+        )
+        logger.info("Successful: %s", is_execute_statement_successful(response))
 
-    return {"action": "updated status to 'upload complete.'"}
+        return {"action": "updated status to 'upload complete.'"}
