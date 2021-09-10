@@ -1,10 +1,13 @@
 import json
+from helper import logger_setup
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from mangum import Mangum
 
 
+logger = logger_setup.logger
 app = FastAPI()
 
 origins = ["*"]
@@ -28,7 +31,7 @@ def list_data():
 
 
 def handler(event: dict, context):
-    print(f"Event: {json.dumps(event, default=str)}")
+    logger.info("Event: %s", json.dumps(event, default=str))
 
     api_handler = Mangum(app)
     return api_handler(event, context)
