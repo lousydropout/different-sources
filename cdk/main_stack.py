@@ -45,6 +45,13 @@ class DifferentSources(cdk.Stack):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        fastapi_mod = lambda_.LayerVersion(
+            self,
+            "fastapi",
+            code=lambda_.Code.from_asset("lib/fastapi/modules"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
+        )
+
         # Lambda - API
         api_handler = lambda_.Function(
             self,
@@ -53,6 +60,7 @@ class DifferentSources(cdk.Stack):
             runtime=lambda_.Runtime.PYTHON_3_8,
             code=lambda_.Code.from_asset("src"),
             handler="api.handler",
+            layers=[fastapi_mod],
             environment={
                 "metadata_table": metadata_table.table_name,
                 "storage": storage.bucket_name,

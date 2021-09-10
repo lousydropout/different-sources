@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/linux,python,node,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,python,node,visualstudiocode
 
+# lambda layers
+lib/*/modules
+
 # CDK
 cdk.out
 
@@ -157,7 +160,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
